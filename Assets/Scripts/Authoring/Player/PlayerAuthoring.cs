@@ -1,16 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
 [System.Serializable]
+[BurstCompile]
 public struct Player : IComponentData
 {
     public Entity ControlledCharacterObject;
 }
 
 [System.Serializable]
+[BurstCompile]
 public struct PlayerInputs : IComponentData
 {
     public float2 MoveInput;

@@ -17,7 +17,6 @@ public struct GravityEffect : IComponentData
     [HideInInspector] public float CurrentSpeed;
     [HideInInspector] public float FallDistance;
     [HideInInspector] public float FallTime;
-    [HideInInspector] public bool OnGround;
 }
 
 public class GravityEffectAuthoring : MonoBehaviour

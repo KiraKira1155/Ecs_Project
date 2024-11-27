@@ -19,9 +19,9 @@ partial struct GravitySystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        foreach (var (gravity, transForm) in SystemAPI.Query<RefRW<GravityEffect>, RefRW<LocalTransform>>())
+        foreach (var (gravity, transForm, collision) in SystemAPI.Query<RefRW<GravityEffect>, RefRW<LocalTransform>, RefRO<EntityCollision>>())
         {
-            switch (gravity.ValueRO.OnGround)
+            switch (collision.ValueRO.OnGround)
             {
                 case true:
                     gravity.ValueRW.FallTime = 0.0f;
@@ -38,10 +38,6 @@ partial struct GravitySystem : ISystem
                     gravity.ValueRW.FallDistance += -gravity.ValueRO.CurrentSpeed * deltaTime;
 
                     gravity.ValueRW.FallTime += deltaTime;
-                    if (gravity.ValueRO.FallTime >= 5.0f)
-                    {
-                        gravity.ValueRW.OnGround = true;
-                    }
                     break;
             }
         }
