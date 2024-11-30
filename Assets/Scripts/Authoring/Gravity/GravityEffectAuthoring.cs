@@ -13,10 +13,6 @@ public struct GravityEffect : IComponentData
     public float Mass;
     [Header("‹ó‹C’ïRŒW”")]
     public float AirResistanceCoefficient;
-
-    [HideInInspector] public float CurrentSpeed;
-    [HideInInspector] public float FallDistance;
-    [HideInInspector] public float FallTime;
 }
 
 public class GravityEffectAuthoring : MonoBehaviour

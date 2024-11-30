@@ -13,8 +13,8 @@ public struct HitCalculationUtilities
         var a_r = attack.Radius;
         var d_r = defense.Radius;
 
-        var a_c = attack.CenterPos;
-        var d_c = defense.CenterPos;
+        var a_c = attack.Transform.Position;
+        var d_c = defense.Transform.Position;
 
         var dis_x = d_c.x - a_c.x;
         var dis_y = d_c.y - a_c.y;

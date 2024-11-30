@@ -15,7 +15,7 @@ partial struct PlayerCameraSystem : ISystem
 
     public void OnUpdate(ref SystemState state)
     {
-        var camera = PlayerCameraObjsct.Instance;
+        var camera = PlayerCameraObject.Instance;
         if (camera != null)
         {
             Entity playerCamera = SystemAPI.GetSingletonEntity<PlayerCamera>();

@@ -133,7 +133,8 @@ GameObject:
   - component: {fileID: 132330775}
   - component: {fileID: 132330774}
   - component: {fileID: 132330773}
-  - component: {fileID: 132330772}
+  - component: {fileID: 132330776}
+  - component: {fileID: 132330777}
   m_Layer: 0
   m_Name: Floor
   m_TagString: Untagged
@@ -141,28 +142,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!64 &132330772
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 132330771}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &132330773
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -222,12 +201,61 @@ Transform:
   m_GameObject: {fileID: 132330771}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -2.19, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &132330776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 132330771}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6a54e9f426db3842ba56260e268a9e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  collisionSetting:
+    IsFreeze: 0
+    CollisionCenterPos:
+      x: 0
+      y: 0
+      z: 0
+    MoveSpeed:
+      x: 0
+      y: 0
+      z: 0
+    CenterPos:
+      x: 0
+      y: 0
+      z: 0
+    PreviousForce:
+      x: 0
+      y: 0
+      z: 0
+    OnGround: 0
+    BeInitSetting: 0
+--- !u!114 &132330777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 132330771}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96bd389da03c2404089aa8cad26103ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  size:
+    x: 0
+    y: 0
+    z: 0
+  center: {x: 0, y: 0, z: 0}
 --- !u!4 &494164982489366447
 Transform:
   m_ObjectHideFlags: 0
@@ -355,6 +383,8 @@ GameObject:
   m_Component:
   - component: {fileID: 494164982489366447}
   - component: {fileID: 5498491065562022964}
+  - component: {fileID: 5498491065562022966}
+  - component: {fileID: 5498491065562022965}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -376,12 +406,51 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gravityEffect:
     Mass: 60
-    AirResistanceCoefficient: 2.4
-    MaxSpeed: 0
-    CurrentSpeed: 0
-    FallDistance: 0
-    FallTime: 0
+    AirResistanceCoefficient: 0.24
+--- !u!114 &5498491065562022965
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5498491065562022963}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2578b924236c2044bab585046edc9bc2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5498491065562022966
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5498491065562022963}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6a54e9f426db3842ba56260e268a9e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  collisionSetting:
+    IsFreeze: 0
+    CollisionCenterPos:
+      x: 0
+      y: 0
+      z: 0
+    MoveSpeed:
+      x: 0
+      y: 0
+      z: 0
+    CenterPos:
+      x: 0
+      y: 0
+      z: 0
+    PreviousForce:
+      x: 0
+      y: 0
+      z: 0
     OnGround: 0
+    BeInitSetting: 0
 --- !u!4 &5898308058742146473
 Transform:
   m_ObjectHideFlags: 0
