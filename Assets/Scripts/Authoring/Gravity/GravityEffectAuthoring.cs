@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
 [System.Serializable]
@@ -9,10 +11,46 @@ using UnityEngine;
 public struct GravityEffect : IComponentData
 {
     [Header("¿—Ê")]
-    [Tooltip("ƒLƒƒOƒ‰ƒ€")]
+    [Tooltip("kg")]
     public float Mass;
-    [Header("‹ó‹C’ïRŒW”")]
-    public float AirResistanceCoefficient;
+    
+    [Header("’f–ÊÏ")]
+    [Tooltip("m^2")]
+    public float CrossSection;
+
+    [Header("•¨‘Ì‚ÌR—ÍŒW”")]
+    public float Cd;
+
+    [Header("–§“x")]
+    [Tooltip("kg/m^3")]
+    public float Density;
+
+    [Header("g’·")]
+    [Tooltip("ƒ[ƒgƒ‹")]
+    public float Height;
+
+    [Header("Zo‚³‚ê‚é’l")]
+    [ReadOnly]
+    public float FallTime;
+
+    [ReadOnly]
+    public float TerminalVelocity;
+
+    [ReadOnly]
+    public float TerminalVelocityWater;
+
+
+    [HideInInspector]
+    public float ResistanceAir; // R—ÍŒW”
+
+    [HideInInspector]
+    public float ResistanceWater; // R—ÍŒW”
+
+    [HideInInspector]
+    public bool IsUnderwater;
+
+    [HideInInspector]
+    public float DistanceFromWaterSurface;
 }
 
 public class GravityEffectAuthoring : MonoBehaviour
@@ -24,6 +62,11 @@ public class GravityEffectAuthoring : MonoBehaviour
         public override void Bake(GravityEffectAuthoring authoring)
         {
             var entity = GetEntity(TransformUsageFlags.Dynamic);
+            authoring.gravityEffect.ResistanceAir = authoring.gravityEffect.Cd * authoring.gravityEffect.CrossSection * PhysicsConstantUtility.Air * 0.5f;
+            authoring.gravityEffect.ResistanceWater = authoring.gravityEffect.Cd * authoring.gravityEffect.CrossSection * PhysicsConstantUtility.Water * 0.5f;
+
+            authoring.gravityEffect.TerminalVelocity = Mathf.Sqrt((2* authoring.gravityEffect.Mass*PhysicsConstantUtility.G) / (PhysicsConstantUtility.Air * authoring.gravityEffect.CrossSection * authoring.gravityEffect.Cd));
+            authoring.gravityEffect.TerminalVelocityWater = Mathf.Sqrt((2 * authoring.gravityEffect.Mass * PhysicsConstantUtility.G) / (PhysicsConstantUtility.Water * authoring.gravityEffect.CrossSection * authoring.gravityEffect.Cd));
             AddComponent(entity, authoring.gravityEffect);
         }
     }

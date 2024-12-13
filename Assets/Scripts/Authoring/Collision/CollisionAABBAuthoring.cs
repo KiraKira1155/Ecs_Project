@@ -1,44 +1,44 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 
 [System.Serializable]
 [BurstCompile]
 public struct CollisionAABB : IComponentData
 {
-    [HideInInspector] public float3 CenterPos;
-    [HideInInspector] public float3 HalfSize;
-    [HideInInspector] public float3 MinPos;
-    [HideInInspector] public float3 MaxPos;
+    [HideInInspector]
+    public AABBShape AABB;
 
-
-    [BurstCompile]
-    public float3 GetMinPos()
-    {
-        MinPos = CenterPos - HalfSize;
-        return MinPos;
-    }
-
-    [BurstCompile]
-    public float3 GetMaxPos()
-    {
-        MaxPos = CenterPos + HalfSize;
-        return MaxPos;
-    }
+    [ReadOnly]
+    public uint ID;
+    public Entity Entity;
+    [HideInInspector]
+    public bool BeInitSetting;
 }
 
-[RequireComponent(typeof(EntityCollisionAuthoring))]
+[ExecuteAlways]
 public class CollisionAABBAuthoring : MonoBehaviour
 {
-    [SerializeField] private float3 size;
+    [Header("当たり判定範囲の基本設定")]
     [SerializeField] private Vector3 center;
+    [SerializeField] private Vector3 size;
 
-    private void OnDrawGizmos()
+    [Header("当たり判定対象の最上位親オブジェクト登録")]
+    [SerializeField] private GameObject collisionParentObj;
+
+    private AABBShape aabb;
+
+    private void OnEnable()
     {
-        Gizmos.DrawWireCube(transform.position + center, size);
+        aabb = ShapeManager.SetAABB(transform.position, center, size);
+    }
+
+    private void Update()
+    {
+        DebugDrawUtility.DrawAABB(aabb, transform.position + center);
     }
 
     public class Baker : Baker<CollisionAABBAuthoring>
@@ -46,9 +46,10 @@ public class CollisionAABBAuthoring : MonoBehaviour
         public override void Bake(CollisionAABBAuthoring authoring)
         {
             Entity entity = GetEntity(TransformUsageFlags.Dynamic);
+
             AddComponent(entity, new CollisionAABB
             {
-                HalfSize = authoring.size * 0.5f
+                AABB = ShapeManager.SetAABB(authoring.transform.position, authoring.center, authoring.size)
             });
         }
     }

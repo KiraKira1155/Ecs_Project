@@ -6,22 +6,17 @@ using Unity.Transforms;
 using UnityEngine;
 
 [BurstCompile]
-[UpdateAfter(typeof(EntityCollisionSettingSystem))]
+[UpdateAfter(typeof(EntityCollisionHitSystem))]
 partial struct GravitySystem : ISystem
 {
-    private float TimeCount;
-
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        TimeCount += SystemAPI.Time.DeltaTime;
-
-        if (TimeCount >= 5)
-            return;
+        var time = SystemAPI.Time.DeltaTime;
 
         new GravityJob
         {
-            deltaTime = TimeCount,
+            deltaTime = time,
         }.ScheduleParallel();
     }
 }
@@ -31,16 +26,24 @@ partial struct GravityJob : IJobEntity
 {
     public float deltaTime;
 
-    private const float G = -9.80665f;
-    private const float Air = 0.0000182f;
-    private const float Water = 0.001f;
-
     [BurstCompile]
     public void Execute(ref GravityEffect gravity, ref EntityCollision collision)
     {
-        if (!collision.OnGround)
+        if (!collision.BeInitSetting)
+            return;
+
+        if (!collision.OnGround && !gravity.IsUnderwater)
         {
-            collision.AddForce(FreeFallingSpeed(gravity.Mass, gravity.AirResistanceCoefficient, deltaTime, collision.PreviousForce.y));
+            gravity.FallTime += deltaTime;
+            collision.AddForce(FreeFallingSpeed(gravity.Mass, gravity.ResistanceAir, gravity.FallTime, collision.PreviousForce.y, gravity.TerminalVelocity));
+            if(gravity.FallTime >= 20)
+            {
+                collision.OnGround = true;
+            }
+        }
+        else if (collision.OnGround)
+        {
+            gravity.FallTime = 0;
         }
     }
 
@@ -53,36 +56,66 @@ partial struct GravityJob : IJobEntity
     /// <param name="v"></param>
     /// <returns></returns>
     [BurstCompile]
-    public float3 FreeFallingSpeed(float m, float k, float t, float v)
+    public float3 FreeFallingSpeed(float m, float k, float t, float v, float terminalV)
     {
+        if (k == 0 || v == 0)
+            return FreeFallingSpeed(t);
+
         m = m == 0 ? 0.000001f : m;
 
-        //慣性抵抗
-        k = 0.5f * k * 0.5f *  Air * v * v; // 0.5は断面積、0.5は公式の1/2
+        var F = k * v * v;
 
-        if (k == 0)
-            return FreeFallingSpeed(t);
-        return new float3(0, ((m * G) / k * (1 - math.pow(math.E, -((k / m) * t)))), 0);
+        //var velocity = m * PhysicsConstantUtility.G / F * (1 - math.pow(PhysicsConstantUtility.E, (-F / m * t)));
 
-        ////ルンゲ＝クッタ法
-        //var h = t / 2;
-        //var k1 = EquationOfMotion(v, k, m);
-        //var k2 = EquationOfMotion(v + h * k1, k, m);
-        //var k3 = EquationOfMotion(v + h * k2, k, m);
-        //var k4 = EquationOfMotion(v + t * k3, k, m);
+        //return new float3(0, -velocity, 0);
 
-        //return new float3(0, (k1 + 2 * k2 + 2 * k3 + k4) * t / 6, 0);
+        if(v <= -terminalV)
+        {
+            return new float3(0, -terminalV, 0);
+        }
+
+        //ルンゲ＝クッタ法
+        var h = t / 2;
+        var k1 = EquationOfMotion(v, F, m);
+        var k2 = EquationOfMotion(v + h * k1, F, m);
+        var k3 = EquationOfMotion(v + h * k2, F, m);
+        var k4 = EquationOfMotion(v + t * k3, F, m);
+
+        return new float3(0, (k1 + 2 * k2 + 2 * k3 + k4) * t / 6, 0);
     }
 
     [BurstCompile]
     public float3 FreeFallingSpeed(float t)
     {
-        return new float3(0, (G * t), 0);
+        return new float3(0, (-PhysicsConstantUtility.G * t), 0);
     }
 
     [BurstCompile]
     private float EquationOfMotion(float v, float k, float m)
     {
-        return G-(k * v) / m;
+        return -PhysicsConstantUtility.G -(k * v) / m;
     }
 }
+
+[BurstCompile]
+partial struct BuoyancyJob : IJobEntity
+{
+    private float deltaTime;
+
+    [BurstCompile]
+    public void Execute(ref GravityEffect gravity, ref EntityCollision collision)
+    {
+        if (!collision.OnGround && gravity.IsUnderwater)
+        {
+            collision.AddForce(Buoyancy());
+        }
+    }
+
+    public float3 Buoyancy()
+
+    {
+
+        return new float3();
+    }
+}
+

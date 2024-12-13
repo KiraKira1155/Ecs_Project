@@ -9,7 +9,8 @@ using UnityEngine;
 [BurstCompile]
 public struct Player : IComponentData
 {
-    public Entity ControlledCharacterObject;
+    [HideInInspector]
+    public Entity PlayerMeshObject;
 }
 
 [System.Serializable]
@@ -24,8 +25,7 @@ public struct PlayerInputs : IComponentData
 [DisallowMultipleComponent]
 public class PlayerAuthoring : MonoBehaviour
 {
-    public GameObject controlledCharacterObject;
-
+    [SerializeField] private GameObject playerMeshObject;
     public class Baker : Baker<PlayerAuthoring>
     {
         public override void Bake(PlayerAuthoring authoring)
@@ -33,7 +33,7 @@ public class PlayerAuthoring : MonoBehaviour
             Entity entity = GetEntity(TransformUsageFlags.None);
             AddComponent(entity, new Player
             {
-                ControlledCharacterObject = GetEntity(authoring.controlledCharacterObject, TransformUsageFlags.Dynamic),
+                PlayerMeshObject = GetEntity(authoring.playerMeshObject, TransformUsageFlags.None),
             });
             AddComponent<PlayerInputs>(entity);
         }

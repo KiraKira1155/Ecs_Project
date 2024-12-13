@@ -1,7 +1,5 @@
 using Unity.Burst;
-using Unity.Collections;
 using Unity.Entities;
-using Unity.Physics;
 using Unity.Transforms;
 
 [BurstCompile]
@@ -12,7 +10,6 @@ partial struct EntityCollisionSettingSystem : ISystem
     public void OnUpdate(ref SystemState state)
     {
         new EntityCollisionSettingJob { }.ScheduleParallel();
-
     }
 }
 
@@ -22,17 +19,14 @@ partial struct EntityCollisionSettingJob : IJobEntity
     [BurstCompile]
     public void Execute(ref LocalTransform transform, ref EntityCollision collision)
     {
-        if (!collision.IsFreeze)
+        if (!collision.IsFreeze && collision.BeInitSetting)
         {
-            collision.CenterPos = transform.Position;
+            collision.EntityLocalPos = transform.Position;
         }
-        else
+        else if(!collision.BeInitSetting)
         {
-            if (!collision.BeInitSetting)
-            {
-                collision.CenterPos = transform.Position;
-                collision.BeInitSetting = true;
-            }
+            collision.EntityLocalPos = transform.Position;
+            collision.BeInitSetting = true;
         }
     }
 }
