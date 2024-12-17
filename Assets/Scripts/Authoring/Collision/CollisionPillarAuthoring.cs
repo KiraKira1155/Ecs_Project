@@ -11,12 +11,6 @@ public struct CollisionPillar : IComponentData
 {
     [HideInInspector]
     public PillarShape Pillar;
-
-    [ReadOnly]
-    public uint ID;
-    public Entity Entity;
-    [HideInInspector]
-    public bool BeInitSetting;
 }
 
 [ExecuteAlways]
@@ -26,9 +20,6 @@ public class CollisionPillarAuthoring : MonoBehaviour
     [SerializeField] private Vector3 center;
     [SerializeField] private float height;
     [SerializeField] private float radius;
-
-    [Header("当たり判定対象の最上位親オブジェクト登録")]
-    [SerializeField] private GameObject collisionParentObj;
 
     private PillarShape pillar;
 
@@ -47,16 +38,10 @@ public class CollisionPillarAuthoring : MonoBehaviour
         public override void Bake(CollisionPillarAuthoring authoring)
         {
             Entity entity = GetEntity(TransformUsageFlags.Dynamic);
-            Entity targetEntity = GetEntity(authoring.collisionParentObj, TransformUsageFlags.Dynamic);
-            if (authoring.collisionParentObj == null)
-            {
-                targetEntity = entity;
-            }
 
             AddComponent(entity, new CollisionPillar
             {
-                Pillar = ShapeManager.SetPillar(authoring.transform.position, authoring.center, authoring.radius, authoring.height),
-                Entity = targetEntity
+                Pillar = ShapeManager.SetPillar(authoring.transform.position, authoring.center, authoring.radius, authoring.height)
             });
         }
     }

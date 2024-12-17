@@ -11,12 +11,6 @@ public struct CollisionAABB : IComponentData
 {
     [HideInInspector]
     public AABBShape AABB;
-
-    [ReadOnly]
-    public uint ID;
-    public Entity Entity;
-    [HideInInspector]
-    public bool BeInitSetting;
 }
 
 [ExecuteAlways]
@@ -25,9 +19,6 @@ public class CollisionAABBAuthoring : MonoBehaviour
     [Header("当たり判定範囲の基本設定")]
     [SerializeField] private Vector3 center;
     [SerializeField] private Vector3 size;
-
-    [Header("当たり判定対象の最上位親オブジェクト登録")]
-    [SerializeField] private GameObject collisionParentObj;
 
     private AABBShape aabb;
 

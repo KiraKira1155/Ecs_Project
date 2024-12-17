@@ -1,64 +1,192 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 [BurstCompile]
 [UpdateAfter(typeof(EntityCollisionSettingSystem))]
 partial struct EntityCollisionHitSystem : ISystem
 {
+    [BurstCompile]
+    public void OnCreate(ref SystemState state)
+    {
+        state.RequireForUpdate<CollisionSphere>();
+        state.RequireForUpdate<CollisionAABB>();
+    }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-
-    }
-}
-
-[BurstCompile]
-partial struct EntityCollisionHitJob : IJobEntity
-{
-    [ReadOnly] public ComponentLookup<CollisionAABB> aabbGroup;
-    [ReadOnly] public ComponentLookup<CollisionPillar> pillarGroup;
-    [ReadOnly] public ComponentLookup<CollisionSphere> sphereGroup;
-
-    private const byte COLLISION_TYPE_AABB = 0x0001;
-    private const byte COLLISION_TYPE_PILLAR = 0x0002;
-    private const byte COLLISION_TYPE_SPHERE = 0x0004;
-
-    [BurstCompile]
-    public void Execute(ref EntityCollision collision)
-    {
-        CheckCollisionType(collision);
-    }
-
-    [BurstCompile]
-    private void HitCheck(in ShapeManager.ShapeType shapeType)
-    {
-
-    }
-
-    [BurstCompile]
-    private void CheckCollisionType(in EntityCollision collision)
-    {
-        byte collisionCheck = 0x0000;
-        if (aabbGroup.HasComponent(collision.Entity))
+        // aabb VS
+        foreach(var (collision, aabb) in SystemAPI.Query<RefRW<EntityCollision>, RefRW<CollisionAABB>>())
         {
-            collisionCheck |= COLLISION_TYPE_AABB;
-        }
-        if (pillarGroup.HasComponent(collision.Entity))
-        {
-            collisionCheck |= COLLISION_TYPE_PILLAR;
-        }
-        if (sphereGroup.HasComponent(collision.Entity))
-        {
-            collisionCheck |= COLLISION_TYPE_SPHERE;
-        }
-    }
+            if (collision.ValueRO.IsFreeze)
+                continue;
 
-    [BurstDiscard]
-    private void DebugInfo()
-    {
-        Debug.LogWarning("àÍÇ¬ÇÃEntityÇ…ëŒÇµÇƒï°êîÇÃìñÇΩÇËîªíËÇÕîFÇﬂÇÁÇÍÇƒÇ¢Ç»Ç¢");
+            var hit = false;
+
+            aabb.ValueRW.AABB.EntityCenterPos = collision.ValueRO.EntityLocalPos;
+
+            
+            var hitPos = float3.zero;
+
+            foreach (var (defense, d_sphere) in SystemAPI.Query<RefRO<EntityCollision>, RefRW<CollisionSphere>>())
+            {
+                if (collision.ValueRO.ID == defense.ValueRO.ID)
+                    continue;
+
+                d_sphere.ValueRW.Sphere.EntityCenterPos = defense.ValueRO.EntityLocalPos;
+                if (HitCalculationUtilities.AABBVSSphere(aabb.ValueRO.AABB, d_sphere.ValueRO.Sphere, collision.ValueRO.CanCheckHitPos, out hitPos))
+                {
+                    hit = true;
+                }
+            }
+            foreach (var (defense, d_aabb) in SystemAPI.Query<RefRO<EntityCollision>, RefRW<CollisionAABB>>())
+            {
+                if (collision.ValueRO.ID == defense.ValueRO.ID)
+                    continue;
+
+                d_aabb.ValueRW.AABB.EntityCenterPos = defense.ValueRO.EntityLocalPos;
+                if (HitCalculationUtilities.AABBVSAABB(aabb.ValueRO.AABB, d_aabb.ValueRO.AABB, collision.ValueRO.CanCheckHitPos, out hitPos))
+                {
+                    hit = true;
+                }
+            }
+            foreach (var (defense, d_pillar) in SystemAPI.Query<RefRO<EntityCollision>, RefRW<CollisionPillar>>())
+            {
+                if (collision.ValueRO.ID == defense.ValueRO.ID)
+                    continue;
+
+                d_pillar.ValueRW.Pillar.EntityCenterPos = defense.ValueRO.EntityLocalPos;
+                if (HitCalculationUtilities.AABBVSPillar(aabb.ValueRO.AABB, d_pillar.ValueRO.Pillar, collision.ValueRO.CanCheckHitPos, out hitPos))
+                {
+                    hit = true;
+                }
+            }
+
+            if (hit && SystemAPI.HasComponent<GravityEffect>(collision.ValueRO.Entity))
+            {
+                collision.ValueRW.OnGround = true;
+            }
+            else if (!hit)
+            {
+                collision.ValueRW.OnGround = false;
+            }
+        }
+
+
+        // sphere VS
+        foreach (var (collision, sphere) in SystemAPI.Query<RefRW<EntityCollision>, RefRW<CollisionSphere>>())
+        {
+            if (collision.ValueRO.IsFreeze)
+                continue;
+
+            var hit = false;
+
+            sphere.ValueRW.Sphere.EntityCenterPos = collision.ValueRO.EntityLocalPos;
+
+            var hitPos = float3.zero;
+
+            foreach (var (defense, d_sphere) in SystemAPI.Query<RefRO<EntityCollision>, RefRW<CollisionSphere>>())
+            {
+                if (collision.ValueRO.ID == defense.ValueRO.ID)
+                    continue;
+
+                d_sphere.ValueRW.Sphere.EntityCenterPos = defense.ValueRO.EntityLocalPos;
+                if (HitCalculationUtilities.SphereVSSphere(sphere.ValueRO.Sphere, d_sphere.ValueRO.Sphere, collision.ValueRO.CanCheckHitPos, out hitPos))
+                {
+                    hit = true;
+                }
+            }
+            foreach (var (defense, d_aabb) in SystemAPI.Query<RefRO<EntityCollision>, RefRW<CollisionAABB>>())
+            {
+                if (collision.ValueRO.ID == defense.ValueRO.ID)
+                    continue;
+
+                d_aabb.ValueRW.AABB.EntityCenterPos = defense.ValueRO.EntityLocalPos;
+                if (HitCalculationUtilities.AABBVSSphere(d_aabb.ValueRO.AABB, sphere.ValueRO.Sphere, collision.ValueRO.CanCheckHitPos, out hitPos))
+                {
+                    hit = true;
+                }
+            }
+            foreach (var (defense, d_pillar) in SystemAPI.Query<RefRO<EntityCollision>, RefRW<CollisionPillar>>())
+            {
+                if (collision.ValueRO.ID == defense.ValueRO.ID)
+                    continue;
+
+                d_pillar.ValueRW.Pillar.EntityCenterPos = defense.ValueRO.EntityLocalPos;
+                if (HitCalculationUtilities.SphereVSPillar(sphere.ValueRO.Sphere, d_pillar.ValueRO.Pillar, collision.ValueRO.CanCheckHitPos, out hitPos))
+                {
+                    hit = true;
+                }
+            }
+
+            if (hit && SystemAPI.HasComponent<GravityEffect>(collision.ValueRO.Entity))
+            {
+                collision.ValueRW.OnGround = true;
+            }
+            else if (!hit)
+            {
+                collision.ValueRW.OnGround = false;
+            }
+        }
+
+
+        // pillar VS
+        foreach (var (collision, pillar) in SystemAPI.Query<RefRW<EntityCollision>, RefRW<CollisionPillar>>())
+        {
+            if (collision.ValueRO.IsFreeze)
+                continue;
+
+            var hit = false;
+
+            pillar.ValueRW.Pillar.EntityCenterPos = collision.ValueRO.EntityLocalPos;
+
+            var hitPos = float3.zero;
+
+            foreach (var (defense, d_sphere) in SystemAPI.Query<RefRO<EntityCollision>, RefRW<CollisionSphere>>())
+            {
+                if (collision.ValueRO.ID == defense.ValueRO.ID)
+                    continue;
+
+                d_sphere.ValueRW.Sphere.EntityCenterPos = defense.ValueRO.EntityLocalPos;
+                if (HitCalculationUtilities.SphereVSPillar(d_sphere.ValueRO.Sphere, pillar.ValueRO.Pillar, collision.ValueRO.CanCheckHitPos, out hitPos))
+                {
+                    hit = true;
+                }
+            }
+            foreach (var (defense, d_aabb) in SystemAPI.Query<RefRO<EntityCollision>, RefRW<CollisionAABB>>())
+            {
+                if (collision.ValueRO.ID == defense.ValueRO.ID)
+                    continue;
+
+                d_aabb.ValueRW.AABB.EntityCenterPos = defense.ValueRO.EntityLocalPos;
+                if (HitCalculationUtilities.AABBVSPillar(d_aabb.ValueRO.AABB, pillar.ValueRO.Pillar, collision.ValueRO.CanCheckHitPos, out hitPos))
+                {
+                    hit = true;
+                }
+            }
+            foreach (var (defense, d_pillar) in SystemAPI.Query<RefRO<EntityCollision>, RefRW<CollisionPillar>>())
+            {
+                if (collision.ValueRO.ID == defense.ValueRO.ID)
+                    continue;
+
+                d_pillar.ValueRW.Pillar.EntityCenterPos = defense.ValueRO.EntityLocalPos;
+                if (HitCalculationUtilities.PillarVSPillar(pillar.ValueRO.Pillar, d_pillar.ValueRO.Pillar, collision.ValueRO.CanCheckHitPos, out hitPos))
+                {
+                    hit = true;
+                }
+            }
+
+            if (hit && SystemAPI.HasComponent<GravityEffect>(collision.ValueRO.Entity))
+            {
+                collision.ValueRW.OnGround = true;
+            }
+            else if (!hit)
+            {
+                collision.ValueRW.OnGround = false;
+            }
+        }
     }
 }

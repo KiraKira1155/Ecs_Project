@@ -36,10 +36,6 @@ partial struct GravityJob : IJobEntity
         {
             gravity.FallTime += deltaTime;
             collision.AddForce(FreeFallingSpeed(gravity.Mass, gravity.ResistanceAir, gravity.FallTime, collision.PreviousForce.y, gravity.TerminalVelocity));
-            if(gravity.FallTime >= 20)
-            {
-                collision.OnGround = true;
-            }
         }
         else if (collision.OnGround)
         {

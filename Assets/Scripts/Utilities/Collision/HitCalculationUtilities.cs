@@ -1,10 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Mathematics;
 
-[BurstCompile]
-public struct HitCalculationUtilities
+public static class HitCalculationUtilities
 {
     public enum ColliderDirection
     {
@@ -13,15 +13,15 @@ public struct HitCalculationUtilities
         YZ
     }
 
-    [BurstCompile]
-    public bool AABBVSPillar(in AABBShape attack, in PillarShape defense, in bool checkHitPos, out float3 hitPos)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool AABBVSPillar(in AABBShape attack, in PillarShape defense, in bool checkHitPos, out float3 hitPos)
     {
         hitPos = float3.zero;
         return false;
     }
 
-    [BurstCompile]
-    public bool AABBVSSphere(in AABBShape attack, in SphereShape defense, in bool checkHitPos, out float3 hitPos)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool AABBVSSphere(in AABBShape attack, in SphereShape defense, in bool checkHitPos, out float3 hitPos)
     {
         var length = 0.0f;
         var distance = 0.0f;
@@ -88,8 +88,8 @@ public struct HitCalculationUtilities
         return true;
     }
 
-    [BurstCompile]
-    public bool AABBVSAABB(in AABBShape attack, in AABBShape defense, in bool checkHitPos, out float3 hitPos)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool AABBVSAABB(in AABBShape attack, in AABBShape defense, in bool checkHitPos, out float3 hitPos)
     {
         if(attack.MaxPos.x < defense.MinPos.x || attack.MaxPos.y < defense.MinPos.y || attack.MaxPos.z < defense.MinPos.z ||
             defense.MaxPos.x < attack.MinPos.x || defense.MaxPos.y < attack.MinPos.y || defense.MaxPos.z < attack.MinPos.z)
@@ -149,8 +149,8 @@ public struct HitCalculationUtilities
         return true;
     }
 
-    [BurstCompile]
-    public bool SphereVSSphere(in SphereShape attack, in SphereShape defense, in bool checkHitPos, out float3 hitPos)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool SphereVSSphere(in SphereShape attack, in SphereShape defense, in bool checkHitPos, out float3 hitPos)
     {
         var dis_x = defense.EntityCenterPos.x - attack.EntityCenterPos.x;
         var dis_y = defense.EntityCenterPos.y - attack.EntityCenterPos.y;
@@ -198,8 +198,8 @@ public struct HitCalculationUtilities
         return false;
     }
 
-    [BurstCompile]
-    public bool SphereVSPillar(in SphereShape attack, in PillarShape defense, in bool checkHitPos, out float3 hitPos)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool SphereVSPillar(in SphereShape attack, in PillarShape defense, in bool checkHitPos, out float3 hitPos)
     {
         var circlePos = float3.zero;
         var attackCircle = ShapeManager.SetCircle(attack.EntityCenterPos, new float2(attack.ShapeCenterPos.x, attack.ShapeCenterPos.z), attack.Radius, ColliderDirection.XZ);
@@ -246,8 +246,15 @@ public struct HitCalculationUtilities
         return true;
     }
 
-    [BurstCompile]
-    public bool CircleVSCircle(in CircleShape attack, in CircleShape defense, in bool checkHitPos, out float3 hitPos)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool PillarVSPillar(in PillarShape attack, in PillarShape defense, in bool checkHitPos, out float3 hitPos)
+    {
+        hitPos = float3.zero;
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool CircleVSCircle(in CircleShape attack, in CircleShape defense, in bool checkHitPos, out float3 hitPos)
     {
         var dis_x = defense.EntityCenterPos.x - attack.EntityCenterPos.x;
         var dis_y = defense.EntityCenterPos.y - attack.EntityCenterPos.y;
@@ -309,8 +316,8 @@ public struct HitCalculationUtilities
         return false;
     }
 
-    [BurstCompile]
-    public bool QuadVSCircle(in QuadShape attack, in CircleShape defense, in bool checkHitPos, out float3 hitPos)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool QuadVSCircle(in QuadShape attack, in CircleShape defense, in bool checkHitPos, out float3 hitPos)
     {
         // ‰~‚Ì’†S‚©‚ç‹éŒ`‚ÌÅ‚à‹ß‚¢ŠOŽü‚Æ‚Ì‹——£‚ð‹‚ß‚Ä”¼ŒaˆÈ“à‚È‚ç“–‚½‚Á‚Ä‚¢‚é
         var dis_x = math.max(0.0f, math.abs(defense.EntityCenterPos.x - attack.EntityCenterPos.x) - attack.HalfSize.x);

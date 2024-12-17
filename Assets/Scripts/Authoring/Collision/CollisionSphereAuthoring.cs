@@ -11,12 +11,6 @@ public struct CollisionSphere : IComponentData
 {
     [HideInInspector]
     public SphereShape Sphere;
-
-    [ReadOnly]
-    public uint ID;
-    public Entity Entity;
-    [HideInInspector]
-    public bool BeInitSetting;
 }
 
 [ExecuteAlways]
@@ -25,9 +19,6 @@ public class CollisionSphereAuthoring : MonoBehaviour
     [Header("当たり判定範囲の基本設定")]
     [SerializeField] private Vector3 center;
     [SerializeField] private float radius;
-
-    [Header("当たり判定対象の最上位親オブジェクト登録")]
-    [SerializeField] private GameObject collisionParentObj;
 
     private SphereShape sphere;
 

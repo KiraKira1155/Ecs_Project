@@ -21,7 +21,7 @@ partial struct PlayerCameraSystem : ISystem
         {
             Entity playerCamera = SystemAPI.GetSingletonEntity<PlayerCamera>();
             LocalToWorld target = SystemAPI.GetComponent<LocalToWorld>(playerCamera);
-            camera.transform.SetPositionAndRotation(target.Position + new float3(0, 0, -3), target.Rotation);
+            camera.transform.SetPositionAndRotation(target.Position + new float3(0, 0.5f, -5.0f), target.Rotation);
         }
     }
 }
