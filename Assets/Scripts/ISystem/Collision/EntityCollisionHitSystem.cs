@@ -11,8 +11,7 @@ partial struct EntityCollisionHitSystem : ISystem
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate<CollisionSphere>();
-        state.RequireForUpdate<CollisionAABB>();
+        state.RequireForUpdate<EntityCollision>();
     }
 
     [BurstCompile]
@@ -27,7 +26,6 @@ partial struct EntityCollisionHitSystem : ISystem
             var hit = false;
 
             aabb.ValueRW.AABB.EntityCenterPos = collision.ValueRO.EntityLocalPos;
-
             
             var hitPos = float3.zero;
 

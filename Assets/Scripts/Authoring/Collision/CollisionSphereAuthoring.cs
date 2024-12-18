@@ -9,7 +9,6 @@ using UnityEngine;
 [BurstCompile]
 public struct CollisionSphere : IComponentData
 {
-    [HideInInspector]
     public SphereShape Sphere;
 }
 

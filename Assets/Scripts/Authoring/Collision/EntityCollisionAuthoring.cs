@@ -28,6 +28,8 @@ public struct EntityCollision : IComponentData
     [HideInInspector] public float3 PreviousForce;
     private float3 Force;
 
+    [HideInInspector] public int StateFlag;
+
     [BurstCompile]
     public void AddForce(float3 force)
     {
@@ -45,6 +47,8 @@ public struct EntityCollision : IComponentData
     {
         Force = 0;
     }
+
+
 }
 
 public struct HitContainerBuffer

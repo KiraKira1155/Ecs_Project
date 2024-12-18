@@ -2,9 +2,10 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
-[UpdateInGroup(typeof(PresentationSystemGroup))]
 [BurstCompile]
+[UpdateAfter(typeof(UserMoveCameraViewSystem))]
 partial struct PlayerCameraSystem : ISystem
 {
 
@@ -22,6 +23,6 @@ partial struct PlayerCameraSystem : ISystem
             Entity playerCamera = SystemAPI.GetSingletonEntity<PlayerCamera>();
             LocalToWorld target = SystemAPI.GetComponent<LocalToWorld>(playerCamera);
             camera.transform.SetPositionAndRotation(target.Position + new float3(0, 0.5f, -5.0f), target.Rotation);
-        }
+            Vector3.Lerp();
     }
 }

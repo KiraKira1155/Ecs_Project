@@ -101,14 +101,15 @@ public static class ShapeManager
     public static AABBShape SetAABB(in float3 entityPos, in float3 center, in float3 size)
     {
         var halfSize = size * 0.5f;
+        var pos = entityPos + center;
         return new AABBShape
         {
             ShapeCenterPos = center,
             EntityCenterPos = entityPos,
             Size = size,
             HalfSize = halfSize,
-            MinPos = center - halfSize,
-            MaxPos = center + halfSize,
+            MinPos = pos - halfSize,
+            MaxPos = pos + halfSize,
         };
     }
 
@@ -116,14 +117,15 @@ public static class ShapeManager
     public static PillarShape SetPillar(in float3 entityPos, in float3 center, in float radius, in float height)
     {
         var circle = SetCircle(entityPos, new float2(center.x, center.z), radius, HitCalculationUtilities.ColliderDirection.XZ);
+        var pos = entityPos + center;
         return new PillarShape
         {
             Circle = circle,
             ShapeCenterPos = center,
             EntityCenterPos= entityPos,
             Height = height,
-            BottomPosY = center.y - height * 0.5f,
-            TopPosY = center.y + height * 0.5f
+            BottomPosY = pos.y - height * 0.5f,
+            TopPosY = pos.y + height * 0.5f
         };
     }
 }

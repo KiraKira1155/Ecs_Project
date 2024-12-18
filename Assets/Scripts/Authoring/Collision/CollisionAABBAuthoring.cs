@@ -9,7 +9,6 @@ using UnityEngine;
 [BurstCompile]
 public struct CollisionAABB : IComponentData
 {
-    [HideInInspector]
     public AABBShape AABB;
 }
 

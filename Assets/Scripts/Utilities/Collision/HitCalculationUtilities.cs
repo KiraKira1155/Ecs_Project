@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Mathematics;
+using UnityEngine;
 
 public static class HitCalculationUtilities
 {
@@ -79,11 +80,7 @@ public static class HitCalculationUtilities
         {
             hitPos.x = defense.EntityCenterPos.x + hitPos.x;
             hitPos.y = defense.EntityCenterPos.y + hitPos.y;
-            hitPos.y = defense.EntityCenterPos.y + hitPos.y;
-        }
-        else
-        {
-            return true;
+            hitPos.z = defense.EntityCenterPos.z + hitPos.z;
         }
         return true;
     }

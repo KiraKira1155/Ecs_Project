@@ -9,7 +9,6 @@ using UnityEngine;
 [BurstCompile]
 public struct CollisionPillar : IComponentData
 {
-    [HideInInspector]
     public PillarShape Pillar;
 }
 

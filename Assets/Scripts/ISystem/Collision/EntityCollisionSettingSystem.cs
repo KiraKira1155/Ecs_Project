@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 using Unity.Burst;
-using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -13,6 +12,9 @@ partial struct EntityCollisionSettingSystem : ISystem
     public void OnCreate(ref SystemState state)
     {
         init = false;
+
+        state.RequireForUpdate<EntityCollision>();
+        state.RequireForUpdate<LocalTransform>();
 
         //new EntityShapeCollisionInitSettingJob
         //{
@@ -60,18 +62,38 @@ partial struct EntityCollisionSettingSystem : ISystem
                 }
             }
 
+            foreach(var (fluid, collision) in SystemAPI.Query<RefRW<FluidState>, RefRW<EntityCollision>>())
+            {
+                collision.ValueRW.StateFlag = CollisionStateUtility.STATE_FLAG_FLUID;
+                if (SystemAPI.HasComponent<CollisionAABB>(collision.ValueRO.Entity))
+                {
+                    fluid.ValueRW.WaterSurfacePos = SystemAPI.GetComponent<CollisionAABB>(collision.ValueRO.Entity).AABB.MaxPos.y;
+                }
+                else if (SystemAPI.HasComponent<CollisionSphere>(collision.ValueRO.Entity))
+                {
+                    var sphere = SystemAPI.GetComponent<CollisionSphere>(collision.ValueRO.Entity).Sphere;
+                    fluid.ValueRW.WaterSurfacePos = sphere.Radius + sphere.EntityCenterPos.y + collision.ValueRO.EntityLocalPos.y;
+                }
+                else if (SystemAPI.HasComponent<CollisionPillar>(collision.ValueRO.Entity))
+                {
+                    fluid.ValueRW.WaterSurfacePos = SystemAPI.GetComponent<CollisionPillar>(collision.ValueRO.Entity).Pillar.TopPosY;
+                }
+            }
+
             init = true;
         }
         else
         {
-            foreach (var (collision, transform) in SystemAPI.Query<RefRW<EntityCollision>, RefRO<LocalTransform>>())
+            new EntityCollisionSettingJob
             {
-                if (!collision.ValueRO.IsFreeze)
-                {
-                    collision.ValueRW.EntityLocalPos = transform.ValueRO.Position;
-                }
-            }
+
+            }.ScheduleParallel();
         }
+    }
+
+    [BurstCompile]
+    public void FluidStateSetting(RefRW<EntityCollision> collision)
+    {
     }
 }
 
@@ -81,14 +103,9 @@ partial struct EntityCollisionSettingJob : IJobEntity
     [BurstCompile]
     public void Execute(ref LocalTransform transform, ref EntityCollision collision)
     {
-        if (!collision.IsFreeze && collision.BeInitSetting)
+        if (!collision.IsFreeze)
         {
             collision.EntityLocalPos = transform.Position;
-        }
-        else if(!collision.BeInitSetting)
-        {
-            collision.EntityLocalPos = transform.Position;
-            collision.BeInitSetting = true;
         }
     }
 }

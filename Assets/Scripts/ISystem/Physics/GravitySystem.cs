@@ -1,9 +1,6 @@
-using System.Threading;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
-using UnityEngine;
 
 [BurstCompile]
 [UpdateAfter(typeof(EntityCollisionHitSystem))]
@@ -32,14 +29,21 @@ partial struct GravityJob : IJobEntity
         if (!collision.BeInitSetting)
             return;
 
-        if (!collision.OnGround && !gravity.IsUnderwater)
-        {
-            gravity.FallTime += deltaTime;
-            collision.AddForce(FreeFallingSpeed(gravity.Mass, gravity.ResistanceAir, gravity.FallTime, collision.PreviousForce.y, gravity.TerminalVelocity));
-        }
-        else if (collision.OnGround)
+        if (collision.OnGround)
         {
             gravity.FallTime = 0;
+        }
+        else
+        {
+            gravity.FallTime += deltaTime;
+            if (gravity.IsUnderwater)
+            {
+                collision.AddForce(FreeFallingSpeed(gravity.Mass, gravity.ResistanceWater, gravity.FallTime, collision.PreviousForce.y, gravity.TerminalVelocityWater));
+            }
+            else
+            {
+                collision.AddForce(FreeFallingSpeed(gravity.Mass, gravity.ResistanceAir, gravity.FallTime, collision.PreviousForce.y, gravity.TerminalVelocity));
+            }
         }
     }
 
@@ -65,19 +69,20 @@ partial struct GravityJob : IJobEntity
 
         //return new float3(0, -velocity, 0);
 
-        if(v <= -terminalV)
+        //ルンゲ＝クッタ法
+        var k1 = t * EquationOfMotion(v, F, m);
+        var k2 = t * EquationOfMotion(v + k1 / 2, F, m);
+        var k3 = t * EquationOfMotion(v + k2 / 2, F, m);
+        var k4 = t * EquationOfMotion(v + k3, F, m);
+
+        v = (k1 + 2 * k2 + 2 * k3 + k4) / 6;
+
+        if (v <= -terminalV)
         {
             return new float3(0, -terminalV, 0);
         }
 
-        //ルンゲ＝クッタ法
-        var h = t / 2;
-        var k1 = EquationOfMotion(v, F, m);
-        var k2 = EquationOfMotion(v + h * k1, F, m);
-        var k3 = EquationOfMotion(v + h * k2, F, m);
-        var k4 = EquationOfMotion(v + t * k3, F, m);
-
-        return new float3(0, (k1 + 2 * k2 + 2 * k3 + k4) * t / 6, 0);
+        return new float3(0, v, 0);
     }
 
     [BurstCompile]
@@ -87,9 +92,9 @@ partial struct GravityJob : IJobEntity
     }
 
     [BurstCompile]
-    private float EquationOfMotion(float v, float k, float m)
+    private float EquationOfMotion(float v, float f, float m)
     {
-        return -PhysicsConstantUtility.G -(k * v) / m;
+        return -PhysicsConstantUtility.G -(f * v) / m;
     }
 }
 
